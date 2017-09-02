@@ -16,6 +16,8 @@ import android.view.MenuItem;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    MainFragment mainFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        mainFragment = (MainFragment) getSupportFragmentManager().findFragmentById(R.id.main_fragment);
     }
 
     @Override
@@ -67,8 +70,22 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.business) {
+            mainFragment.changeData("business");
+        } else if (id == R.id.entertainment) {
+            mainFragment.changeData("entertainment");
+        } else if (id == R.id.gaming) {
+            mainFragment.changeData("gaming");
+        } else if (id == R.id.general) {
+            mainFragment.changeData("general");
+        } else if (id == R.id.music) {
+            mainFragment.changeData("music");
+        } else if(id == R.id.politics) {
+            mainFragment.changeData("politics");
+        } else if (id == R.id.sport) {
+            mainFragment.changeData("sport");
+        } else if (id == R.id.technology) {
+            mainFragment.changeData("technology");
         }
 
         return super.onOptionsItemSelected(item);
@@ -80,17 +97,12 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        if (id == R.id.nav_home) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+            setTitle("Home");
+            mainFragment.changeData("Home");
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_settings) {
 
         }
 
