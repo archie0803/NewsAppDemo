@@ -48,7 +48,7 @@ public class MainFragment extends Fragment {
         mArticleRecyclerView = (RecyclerView) rootView.findViewById(R.id.main_recycler_view);
         mArticleRecyclerView.setAdapter(mArticleAdapter);
         mArticleRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP|ItemTouchHelper.DOWN,ItemTouchHelper.RIGHT) {
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -68,7 +68,7 @@ public class MainFragment extends Fragment {
                 Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setData(Uri.parse(url));
                 startActivity(i);
-                mArticleAdapter.notify();
+                mArticleAdapter.notifyDataSetChanged();
             }
         });
         itemTouchHelper.attachToRecyclerView(mArticleRecyclerView);
