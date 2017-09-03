@@ -22,4 +22,33 @@
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
 
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_right_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header_right">
+
+        <FrameLayout
+            android:id="@+id/content_frame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/nav_header_height">
+
+            <!-- The navigation drawer -->
+            <!-- android:background="#111" -->
+
+            <ListView
+                android:id="@+id/right_drawer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="start"
+                android:choiceMode="singleChoice"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="0dp" />
+        </FrameLayout>
+
+    </android.support.design.widget.NavigationView>
+
 </android.support.v4.widget.DrawerLayout>

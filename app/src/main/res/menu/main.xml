@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_openRight"
+        android:icon="@drawable/ic_open_right"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/none"
+        android:title="-Default-"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/business"
-        android:orderInCategory="100"
         android:title="Business"
         app:showAsAction="never" />
 
@@ -13,25 +25,29 @@
 
     <item
         android:id="@+id/gaming"
-        android:title="gaming" />
+        android:title="Gaming" />
 
     <item
         android:id="@+id/general"
-        android:title="general" />
+        android:title="General" />
 
     <item
         android:id="@+id/music"
-        android:title="music" />
+        android:title="Music" />
 
     <item
         android:id="@+id/politics"
-        android:title="politics" />
+        android:title="Politics" />
+
+    <item
+        android:id="@+id/science"
+        android:title="Science and Nature" />
 
     <item
         android:id="@+id/sport"
-        android:title="sport" />
+        android:title="Sport" />
 
     <item
         android:id="@+id/technology"
-        android:title="technology" />
+        android:title="Technology" />
 </menu>

@@ -38,26 +38,19 @@ public class MainFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
         retrofitHelper = new RetrofitHelper(BASE_URL);
         apiInterface = retrofitHelper.getAPI();
 
         articleArrayList = new ArrayList<>();
         mArticleAdapter = new ArticleAdapter(getContext(), articleArrayList);
-        mArticleRecyclerView = (RecyclerView) rootView.findViewById(R.id.main_recycler_view);
+        mArticleRecyclerView = rootView.findViewById(R.id.main_recycler_view);
         mArticleRecyclerView.setAdapter(mArticleAdapter);
         mArticleRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-//                int from = viewHolder.getAdapterPosition();
-//                int to = target.getAdapterPosition();
-//                Collections.swap(articleArrayList,from,to);
-//                mArticleAdapter.notifyItemMoved(from,to);
-//                return true;
-                return false;
+             return false;
             }
 
             @Override
@@ -65,43 +58,44 @@ public class MainFragment extends Fragment {
                 int position = viewHolder.getAdapterPosition();
                 articleArrayList.get(position).getUrl();
                 String url = articleArrayList.get(position).getUrl();
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(url));
-                startActivity(i);
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                 mArticleAdapter.notifyDataSetChanged();
             }
         });
         itemTouchHelper.attachToRecyclerView(mArticleRecyclerView);
-        //String str = getArguments().getString("category");
-        changeData("home");
-
+        String str = "bbc-news";
+        changeData(str);
         return rootView;
     }
 
     public void changeData(String str) {
-        articleResponseCall = apiInterface.getArticleBySource("bbc-news", "top", API_KEY);
-        articleResponseCall.enqueue(new Callback<ArticleResponse>() {
-            @Override
-            public void onResponse(Call<ArticleResponse> call, Response<ArticleResponse> response) {
-                if (!response.isSuccessful()) {
-                    articleResponseCall = call.clone();
-                    articleResponseCall.enqueue(this);
-                    return;
-                }
-                if (response.body() == null) return;
-                for (ArticleResponse.Article article : response.body().getArticles()) {
-                    if (article != null && article.getTitle() != null && article.getUrlToImage() != null && article.getUrl() != null
-                            && article.getDescription() != null)
-                        articleArrayList.add(article);
+        if (!str.trim().isEmpty()) {
+            articleResponseCall = apiInterface.getArticleBySource(str, "top", API_KEY);
+            articleResponseCall.enqueue(new Callback<ArticleResponse>() {
+                @Override
+                public void onResponse(Call<ArticleResponse> call, Response<ArticleResponse> response) {
+                    if (!response.isSuccessful()) {
+                        articleResponseCall = call.clone();
+                        articleResponseCall.enqueue(this);
+                        return;
+                    }
+                    articleArrayList.clear();
+                    if (response.body() == null) return;
+                    for (ArticleResponse.Article article : response.body().getArticles()) {
+                        if (article != null && article.getTitle() != null && article.getUrlToImage() != null && article.getUrl() != null
+                                && article.getDescription() != null)
+                            articleArrayList.add(article);
+                    }
                     mArticleAdapter.notifyDataSetChanged();
+//                    mArticleRecyclerView.setAdapter(mArticleAdapter);
                 }
-            }
 
-            @Override
-            public void onFailure(Call<ArticleResponse> call, Throwable t) {
-                Log.i("TAG", t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(Call<ArticleResponse> call, Throwable t) {
+                    Log.i("TAG", t.getMessage());
+                }
+            });
+        }
 
     }
 }

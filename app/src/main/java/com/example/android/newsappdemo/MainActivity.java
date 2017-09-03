@@ -3,6 +3,7 @@ package com.example.android.newsappdemo;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,11 +13,33 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.example.android.newsappdemo.Constants.BASE_URL;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     MainFragment mainFragment;
+    DrawerLayout drawer;
+    ListView mDrawerList;
+
+    ArrayList<Source.Res> sourceArrayList;
+    ArrayList<String> sourceNameList;
+    ArrayAdapter<String> mSourceAdapter;
+    String category;
+
+    RetrofitHelper retrofitHelper;
+    ApiInterface apiInterface;
+    Call<Source> sourceResponseCall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +47,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        setTitle("Home");
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -33,8 +56,11 @@ public class MainActivity extends AppCompatActivity
                         .setAction("Action", null).show();
             }
         });
+        retrofitHelper = new RetrofitHelper(BASE_URL);
+        apiInterface = retrofitHelper.getAPI();
+        mainFragment = (MainFragment) getSupportFragmentManager().findFragmentById(R.id.main_fragment);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -42,7 +68,68 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        mainFragment = (MainFragment) getSupportFragmentManager().findFragmentById(R.id.main_fragment);
+
+        NavigationView rightNavigationView = (NavigationView) findViewById(R.id.nav_right_view);
+
+        sourceArrayList = new ArrayList<>();
+        sourceNameList = new ArrayList<>();
+        mSourceAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sourceNameList);
+        mDrawerList = (ListView) findViewById(R.id.right_drawer);
+        mDrawerList.setAdapter(mSourceAdapter);
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
+                setTitle(sourceArrayList.get(pos).getName());
+                mainFragment.changeData(sourceArrayList.get(pos).getId());
+                drawer.closeDrawer(GravityCompat.END);
+            }
+        });
+        category = "";
+        loadSources(category);
+
+
+        rightNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                // Handle Right navigation view item clicks here.
+                drawer.closeDrawer(GravityCompat.END); /*Important Line*/
+                return true;
+            }
+        });
+    }
+
+    public void loadSources(String category) {
+        sourceResponseCall = apiInterface.getSourceByCategory(category);
+        sourceResponseCall.enqueue(new Callback<Source>() {
+            @Override
+            public void onResponse(Call<Source> call, Response<Source> response) {
+                if (!response.isSuccessful()) {
+                    sourceResponseCall = call.clone();
+                    sourceResponseCall.enqueue(this);
+                    return;
+                }
+
+                if (response.body() == null) return;
+                if (sourceNameList.size() != 0) {
+                    sourceNameList.clear();
+                    sourceArrayList.clear();
+                    mSourceAdapter.notifyDataSetChanged();
+                }
+                for (Source.Res source : response.body().getSources()) {
+                    if (source != null && source.getId() != null && source.getName() != null && source.getCategory() != null) {
+                        sourceNameList.add(source.getName());
+                        sourceArrayList.add(source);
+                    }
+                    mSourceAdapter.notifyDataSetChanged();
+                    mDrawerList.setAdapter(mSourceAdapter);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Source> call, Throwable t) {
+                Log.i("TAG", t.getMessage());
+            }
+        });
     }
 
     @Override
@@ -50,6 +137,8 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (drawer.isDrawerOpen(GravityCompat.END)) {
+            drawer.closeDrawer(GravityCompat.END);
         } else {
             super.onBackPressed();
         }
@@ -70,22 +159,31 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.business) {
-            mainFragment.changeData("business");
+        if (id == R.id.none) {
+            loadSources("");
+        } else if (id == R.id.business) {
+            loadSources("business");
         } else if (id == R.id.entertainment) {
-            mainFragment.changeData("entertainment");
+            loadSources("entertainment");
         } else if (id == R.id.gaming) {
-            mainFragment.changeData("gaming");
+            loadSources("gaming");
         } else if (id == R.id.general) {
-            mainFragment.changeData("general");
+            loadSources("general");
         } else if (id == R.id.music) {
-            mainFragment.changeData("music");
-        } else if(id == R.id.politics) {
-            mainFragment.changeData("politics");
+            loadSources("music");
+        } else if (id == R.id.politics) {
+            loadSources("politics");
+        } else if (id == R.id.science) {
+            loadSources("science-and-nature");
         } else if (id == R.id.sport) {
-            mainFragment.changeData("sport");
+            loadSources("sport");
         } else if (id == R.id.technology) {
-            mainFragment.changeData("technology");
+            loadSources("technology");
+        }
+
+        if (id == R.id.action_openRight) {
+            drawer.openDrawer(GravityCompat.END); /*Opens the Right Drawer*/
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -100,7 +198,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_home) {
             // Handle the camera action
             setTitle("Home");
-            mainFragment.changeData("Home");
+            mainFragment.changeData("bbc-news");
 
         } else if (id == R.id.nav_settings) {
 
