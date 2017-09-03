@@ -30,10 +30,12 @@ public class MainFragment extends Fragment {
     ArrayList<ArticleResponse.Article> articleArrayList;
     ArticleAdapter mArticleAdapter;
     RecyclerView mArticleRecyclerView;
+    String sort;
 
     RetrofitHelper retrofitHelper;
     ApiInterface apiInterface;
     Call<ArticleResponse> articleResponseCall;
+    Call<Source> sortResponseCall;
 
     @Nullable
     @Override
@@ -50,7 +52,7 @@ public class MainFragment extends Fragment {
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-             return false;
+                return false;
             }
 
             @Override
@@ -70,32 +72,68 @@ public class MainFragment extends Fragment {
 
     public void changeData(String str) {
         if (!str.trim().isEmpty()) {
-            articleResponseCall = apiInterface.getArticleBySource(str, "top", API_KEY);
-            articleResponseCall.enqueue(new Callback<ArticleResponse>() {
-                @Override
-                public void onResponse(Call<ArticleResponse> call, Response<ArticleResponse> response) {
-                    if (!response.isSuccessful()) {
-                        articleResponseCall = call.clone();
-                        articleResponseCall.enqueue(this);
-                        return;
-                    }
-                    articleArrayList.clear();
-                    if (response.body() == null) return;
-                    for (ArticleResponse.Article article : response.body().getArticles()) {
-                        if (article != null && article.getTitle() != null && article.getUrlToImage() != null && article.getUrl() != null
-                                && article.getDescription() != null)
-                            articleArrayList.add(article);
-                    }
-                    mArticleAdapter.notifyDataSetChanged();
-//                    mArticleRecyclerView.setAdapter(mArticleAdapter);
+            getSortBy(str);
+        }
+
+    }
+
+    public void getArticle(String str, String sort) {
+        articleResponseCall = apiInterface.getArticleBySource(str, sort, API_KEY);
+        articleResponseCall.enqueue(new Callback<ArticleResponse>() {
+            @Override
+            public void onResponse(Call<ArticleResponse> call, Response<ArticleResponse> response) {
+                if (!response.isSuccessful()) {
+                    articleResponseCall = call.clone();
+                    articleResponseCall.enqueue(this);
+                    return;
+                }
+                articleArrayList.clear();
+                if (response.body() == null) return;
+                for (ArticleResponse.Article article : response.body().getArticles()) {
+                    if (article != null && article.getTitle() != null && article.getUrlToImage() != null && article.getUrl() != null
+                            && article.getDescription() != null)
+                        articleArrayList.add(article);
+                }
+                mArticleAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(Call<ArticleResponse> call, Throwable t) {
+                Log.i("TAG", t.getMessage());
+            }
+        });
+    }
+
+    public void getSortBy(String str) {
+        final String source = str;
+
+        sort = "top";
+        sortResponseCall = apiInterface.getSortByOfSource();
+        sortResponseCall.enqueue(new Callback<Source>() {
+            @Override
+            public void onResponse(Call<Source> call, Response<Source> response) {
+                if (!response.isSuccessful()) {
+                    sortResponseCall = call.clone();
+                    sortResponseCall.enqueue(this);
+                    return;
                 }
 
-                @Override
-                public void onFailure(Call<ArticleResponse> call, Throwable t) {
-                    Log.i("TAG", t.getMessage());
+                if (response.body() == null) return;
+                for (Source.Res res : response.body().getSources()) {
+                    if (res.getId().equalsIgnoreCase(source)) {
+                        sort = res.getSortBysAvailable().get((res.getSortBysAvailable().size()) - 1);
+                        Log.i("TAG", "Here we are" + sort);
+                        getArticle(source, sort);
+                    }
+
                 }
-            });
-        }
+            }
+
+            @Override
+            public void onFailure(Call<Source> call, Throwable t) {
+                Log.i("TAG", "Oh no");
+            }
+        });
 
     }
 }

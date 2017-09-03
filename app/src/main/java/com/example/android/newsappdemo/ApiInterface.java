@@ -14,6 +14,10 @@ public interface ApiInterface {
     @GET("articles")
     Call<ArticleResponse> getArticleBySource(@Query("source") String source, @Query("sortBy") String sort, @Query("apiKey") String api_key);
 
+    //GET SORTS FOR SOURCE
+    @GET("sources")
+    Call<Source> getSortByOfSource();
+
     //GET SOURCE BY CATEGORY
     @GET("sources")
     Call<Source> getSourceByCategory(@Query("category") String category);
